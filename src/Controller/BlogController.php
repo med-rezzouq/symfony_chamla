@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,8 +46,17 @@ class BlogController extends AbstractController
     /**
      * @Route("/blog/new", name="blog_create")
      */
-    public function create(Request $request, EntityManagerInterface $manager)
+
+    /**
+     * @Route("/blog/{id}/edit", name="blog_edit")
+     */
+
+    public function create(Article $article, Request $request, EntityManagerInterface $manager)
     {
+        // méme fonction pour la modification aussi
+        if (!$article) {
+            $article = new Article();
+        }
         // dump($request);
         // die;
         // if ($request->request->count() > 0) {
@@ -61,15 +72,38 @@ class BlogController extends AbstractController
         // }
 
         //we can do instead pour creer le code html formulaire par symfony
-        $article = new Article();
 
-        $form = $this->createFormBuilder($article)
-            ->add('title', TextType::class, ['attr' => ['placeholder' => "Titre de l'article", 'class' => 'form-control']])
-            ->add('content', TextareaType::class, ['attr' => ['placeholder' => "Contenu de l'article", 'class' => 'form-control']])
-            ->add('image', TextType::class, ['attr' => ['placeholder' => "Image de l'article", 'class' => 'form-control']])
-            ->getForm();
 
-        return $this->render('blog/create.html.twig', ['formArticle' => $form->createView()]);
+        // $form = $this->createFormBuilder($article)
+        // ->add('title', TextType::class, ['attr' => ['placeholder' => "Titre de l'article", 'class' => 'form-control']])
+        // ->add('content', TextareaType::class, ['attr' => ['placeholder' => "Contenu de l'article", 'class' => 'form-control']])
+        // ->add('image', TextType::class, ['attr' => ['placeholder' => "Image de l'article", 'class' => 'form-control']])
+
+        //autre façon
+        // $form = $this->createFormBuilder($article)
+
+        //     ->add('title')
+        //     ->add('content')
+        //     ->add('image')
+        // ->add('save', SubmitType::class, ['label' => 'Enregistrer'])
+        // ->getForm();
+
+        $form = $this->createForm(ArticleType::class, $article);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (!$article->getId()) {
+                $article->setCreatedAt(new \DateTime());
+            }
+
+            $manager->persist($article);
+            $manager->flush();
+            return $this->redirectToRoute("blog_show", ['id' => $article->getId()]);
+
+            // dump($article);
+        }
+        return $this->render('blog/create.html.twig', ['formArticle' => $form->createView(), 'editMode' => $article->getId() !== null]);
     }
 
     /**
