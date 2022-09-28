@@ -45,9 +45,6 @@ class BlogController extends AbstractController
 
     /**
      * @Route("/blog/new", name="blog_create")
-     */
-
-    /**
      * @Route("/blog/{id}/edit", name="blog_edit")
      */
 
