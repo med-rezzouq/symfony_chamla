@@ -48,9 +48,10 @@ class BlogController extends AbstractController
      * @Route("/blog/{id}/edit", name="blog_edit")
      */
 
-    public function create(Article $article, Request $request, EntityManagerInterface $manager)
+    public function create(Article $article = null, Request $request, EntityManagerInterface $manager)
     {
         // méme fonction pour la modification aussi
+
         if (!$article) {
             $article = new Article();
         }
